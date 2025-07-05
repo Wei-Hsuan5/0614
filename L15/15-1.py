@@ -27,7 +27,7 @@ def download_data():
         tw2317 = yf.download('2317.TW', start='2000-01-01', end=today, auto_adjust=True)
         tw2317.to_csv('data/2317.csv')
         
-    
+        
 def main():
     download_data()
 
