@@ -138,10 +138,6 @@ if st.session_state.show_difficulty_levels:
             - 坡度平緩
             - 適合休閒健行
 
-            **代表路線：**
-            - 七星山
-            - 大屯山
-            - 擎天崗
             ''')
 
         # 1級
@@ -154,9 +150,6 @@ if st.session_state.show_difficulty_levels:
             - 坡度平緩
             - 一般行程約半天至1天
 
-            **代表路線：**
-            - 合歡主峰
-            - 合歡東峰
             ''')
 
         # 2級
@@ -169,8 +162,6 @@ if st.session_state.show_difficulty_levels:
             - 氣候變化較大而有潛在風險
             - 一般行程約1天內可完成
 
-            **代表路線：**
-            - 錐麓古道
             ''')
 
         # 3級
@@ -183,9 +174,6 @@ if st.session_state.show_difficulty_levels:
             - 路徑尚稱清晰但部分坡度升降較大
             - 一般行程約1至3天
 
-            **代表路線：**
-            - 玉山主峰
-            - 雪山主峰
             ''')
 
         # 4級
@@ -198,9 +186,6 @@ if st.session_state.show_difficulty_levels:
             - 路徑尚稱清晰但部分地形較崎嶇
             - 一般行程約3至5天或約3天以內但有困難地形
 
-            **代表路線：**
-            - 武陵四秀
-            - 南湖大山
             ''')
 
         # 5級
@@ -213,9 +198,6 @@ if st.session_state.show_difficulty_levels:
             - 路徑較為原始地形
             - 一般行程約3至5天或以上
 
-            **代表路線：**
-            - 中央尖山
-            - 奇萊主峰
             ''')
 
         # 安全提醒
@@ -228,8 +210,20 @@ if st.session_state.show_difficulty_levels:
         4. 高難度路線建議結伴同行，切勿單獨登山
         5. 請遵守各國家公園的入山申請規定
         ''')
+    st.markdown('---')
+    st.markdown('#### 用路徑篩選 找出適合自己的健康路線吧！')
 
 else:
+    # 地區選擇
+    region = st.selectbox('選擇地區', ['全部'] + list(hiking_spots.keys()))
+
+    # 難度選擇
+    difficulty = st.selectbox('選擇難度', ['全部', '0級', '1級', '2級', '3級', '4級', '5級'])
+
+    # 所需時間
+    time_options = ['全部', '半天內', '一天內', '多日行程']
+    time_choice = st.selectbox('行程時間', time_options)
+
     with col1:
         st.header('推薦路線')
 
@@ -244,147 +238,79 @@ else:
                 if time_choice != '全部':
                     if time_choice == '半天內' and '天' in spot['time']:
                         continue
-                    if time_choice == '一天內' and ('天' not in spot['time'] or '多日' in spot['time']):
+                    if time_choice == '一天內' and ('天' in spot['time'] and int(spot['time'][0]) > 1):
                         continue
-                    if time_choice == '多日行程' and '多日' not in spot['time']:
+                    if time_choice == '多日行程' and '天' not in spot['time']:
                         continue
-                filtered_spots.append(spot)
+                filtered_spots.append({'region': r, **spot})
 
+        # 顯示篩選結果
         if filtered_spots:
             for spot in filtered_spots:
-                st.markdown('---')
-                st.subheader(spot['name'])
-                st.write(f"**難度：** {spot['difficulty']}")
-                st.write(f"**所需時間：** {spot['time']}")
-                st.write(f"**海拔：** {spot['elevation']}")
-                st.write(f"**特色：** {spot['features']}")
+                with st.expander(f"📍 {spot['name']} ({spot['region']})"): 
+                    # 基本資訊
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        st.markdown(f"**難度：** {spot['difficulty']}")
+                        st.markdown(f"**所需時間：** {spot['time']}")
+                        st.markdown(f"**海拔：** {spot['elevation']}")
+                    with col_b:
+                        st.markdown(f"**特色：** {spot['features']}")
+                        st.markdown(f"**申請須知：** {spot['permit']}")
 
-                # 相關介紹 (Wikipedia Link)
-                st.write(f"**相關介紹：** [Wikipedia]({spot['wiki_url']})")
+                    # 詳細資訊
+                    st.markdown('---')
+                    st.markdown('### 相關介紹')
+                    st.markdown(spot['description'])
+                    st.markdown(f"[維基百科詳細介紹]({spot['wiki_url']})")
 
-                # 申請須知
-                st.write(f"**申請須知：** {spot['permit']}")
-
-                # 登山口位置
-                st.write(f"**登山口位置：** {spot['trailhead']}")
-
-                st.markdown('---')
+                    st.markdown('### 登山口位置')
+                    st.info(spot['trailhead'])
         else:
-            st.info('沒有找到符合條件的路線。')
+            st.info('沒有符合條件的路線，請調整篩選條件。')
 
     with col2:
         st.header('健行小提醒')
-        st.info(
-            """
-            1. **行前準備：** 檢查裝備、規劃路線、告知親友。
-            2. **天氣狀況：** 留意天氣預報，避免惡劣天氣。
-            3. **體能評估：** 選擇適合自己體能的路線。
-            4. **垃圾不落地：** 帶走所有垃圾，維護環境。
-            5. **緊急應變：** 攜帶急救用品，了解緊急聯絡方式。
-            """
-        )
-    
+
+        # 顯示天氣提醒
+        st.subheader('⛅ 天氣建議')
+        weather_tips = [
+            '氣溫越高，請攜帶足夠的水分',
+            '有雨具、防水外套以備不時之需',
+            '日曬指數高時，記得防曬',
+            '霧大時請特別注意安全',
+            '颱風天請勿上山'
+        ]
+        st.info(random.choice(weather_tips))
+
+        # 裝備清單
+        st.subheader('🎒 基本裝備清單')
+        equipment = [
+            '適合的登山鞋',
+            '充足的飲用水',
+            '行動電源',
+            '指北針/地圖',
+            '急救包',
+            '防曬用品',
+            '保暖衣物',
+            '手電筒',
+            '登山杖（建議）',
+            '高熱量食物'
+        ]
+        for item in equipment:
+            st.markdown(f'- {item}')
+
+        # 安全提醒
+        st.subheader('⚠️ 安全注意事項')
+        safety_tips = [
+            '事先規劃路線',
+            '查看天氣預報',
+            '告知親友行程',
+            '注意體力分配',
+            '遵守登山倫理'
+        ]
+        for tip in safety_tips:
+            st.markdown(f'- {tip}')
+
     st.markdown('---')
-    
-    st.header('路線篩選')
-    
-    # 地區選擇
-    region = st.selectbox('選擇地區', ['全部'] + list(hiking_spots.keys()))
-    
-    # 難度選擇
-    difficulty = st.selectbox('選擇難度', ['全部', '0級', '1級', '2級', '3級', '4級', '5級'])
-    
-    # 所需時間
-    time_options = ['全部', '半天內', '一天內', '多日行程']
-    time_choice = st.selectbox('行程時間', time_options)
-
-# 主要內容區
-col1, col2 = st.columns([2, 1])
-
-with col1:
-    st.header('推薦路線')
-    
-    # 篩選邏輯
-    filtered_spots = []
-    regions_to_search = [region] if region != '全部' else hiking_spots.keys()
-    
-    for r in regions_to_search:
-        for spot in hiking_spots[r]:
-            if difficulty != '全部' and spot['difficulty'] != difficulty:
-                continue
-            if time_choice != '全部':
-                if time_choice == '半天內' and '天' in spot['time']:
-                    continue
-                if time_choice == '一天內' and ('天' in spot['time'] and int(spot['time'][0]) > 1):
-                    continue
-                if time_choice == '多日行程' and '天' not in spot['time']:
-                    continue
-            filtered_spots.append({'region': r, **spot})
-    
-    # 顯示篩選結果
-    if filtered_spots:
-        for spot in filtered_spots:
-            with st.expander(f"📍 {spot['name']} ({spot['region']})"): 
-                # 基本資訊
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    st.markdown(f"**難度：** {spot['difficulty']}")
-                    st.markdown(f"**所需時間：** {spot['time']}")
-                    st.markdown(f"**海拔：** {spot['elevation']}")
-                with col_b:
-                    st.markdown(f"**特色：** {spot['features']}")
-                    st.markdown(f"**申請須知：** {spot['permit']}")
-                
-                # 詳細資訊
-                st.markdown('---')
-                st.markdown('### 相關介紹')
-                st.markdown(spot['description'])
-                st.markdown(f"[維基百科詳細介紹]({spot['wiki_url']})")
-                
-                st.markdown('### 登山口位置')
-                st.info(spot['trailhead'])
-    else:
-        st.info('沒有符合條件的路線，請調整篩選條件。')
-
-with col2:
-    st.header('健行小提醒')
-    
-    # 顯示天氣提醒
-    st.subheader('⛅ 天氣建議')
-    weather_tips = [
-        '氣溫越高，請攜帶足夠的水分',
-        '有雨具、防水外套以備不時之需',
-        '日曬指數高時，記得防曬',
-        '霧大時請特別注意安全',
-        '颱風天請勿上山'
-    ]
-    st.info(random.choice(weather_tips))
-    
-    # 裝備清單
-    st.subheader('🎒 基本裝備清單')
-    equipment = [
-        '適合的登山鞋',
-        '充足的飲用水',
-        '行動電源',
-        '指北針/地圖',
-        '急救包',
-        '防曬用品',
-        '保暖衣物',
-        '手電筒',
-        '登山杖（建議）',
-        '高熱量食物'
-    ]
-    for item in equipment:
-        st.markdown(f'- {item}')
-    
-    # 安全提醒
-    st.subheader('⚠️ 安全注意事項')
-    safety_tips = [
-        '事先規劃路線',
-        '查看天氣預報',
-        '告知親友行程',
-        '注意體力分配',
-        '遵守登山倫理'
-    ]
-    for tip in safety_tips:
-        st.markdown(f'- {tip}')
+    st.markdown('### 山 一直都在！')
