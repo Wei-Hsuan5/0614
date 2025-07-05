@@ -116,6 +116,9 @@ with st.sidebar:
         time_options = ['全部', '半天內', '一天內', '多日行程']
         time_choice = st.selectbox('行程時間', time_options, key='sidebar_time')
         st.session_state.time_choice = time_choice
+        
+        st.image('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAd1_sAMVdRefm9vyUErdv_qelEe8BsFG6TQ&s')
+
 
 # 主要內容區
 col1, col2 = st.columns([2, 1])
