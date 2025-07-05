@@ -1,2 +1,5 @@
-mkdir .streamlit
-echo '[server]\nheadless = true\nport = $PORT\nenableCORS = false\nenableXsrfProtection = false' > .streamlit/config.toml
+[server]
+headless = true
+port = $PORT
+enableCORS = false
+enableXsrfProtection = false
