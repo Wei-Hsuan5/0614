@@ -67,14 +67,15 @@ st.markdown('---')
 
 # 側邊欄篩選條件
 with st.sidebar:
-    # 難度等級說明
-    # 難度等級說明
+    # 初始化 session_state 變數
     if 'show_difficulty_levels' not in st.session_state:
         st.session_state.show_difficulty_levels = False
-
-    # 難度等級說明
-    if 'show_difficulty_levels' not in st.session_state:
-        st.session_state.show_difficulty_levels = False
+    if 'region' not in st.session_state:
+        st.session_state.region = '全部'
+    if 'difficulty' not in st.session_state:
+        st.session_state.difficulty = '全部'
+    if 'time_choice' not in st.session_state:
+        st.session_state.time_choice = '全部'
 
     # 使用 CSS 確保按鈕寬度一致
     st.markdown("""
@@ -99,20 +100,22 @@ with st.sidebar:
         if col_filter.button('路線篩選', key='route_filter_button'):
             st.session_state.show_difficulty_levels = False
     with col_info_filter:
-        # 路線篩選不需要資訊圖標，但為了對齊，可以放置一個空的 div
-        st.markdown('<div style="display: flex; align-items: center; height: 100%;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="display: flex; align-items: center; height: 100%;"><div title="尋找適合自己的山" style="cursor: help;">ℹ️</div></div>', unsafe_allow_html=True)
 
 
     if not st.session_state.show_difficulty_levels:
         # 地區選擇
-        region = st.selectbox('選擇地區', ['全部'] + list(hiking_spots.keys()))
+        region = st.selectbox('選擇地區', ['全部'] + list(hiking_spots.keys()), key='sidebar_region')
+        st.session_state.region = region
 
         # 難度選擇
-        difficulty = st.selectbox('選擇難度', ['全部', '0級', '1級', '2級', '3級', '4級', '5級'])
+        difficulty = st.selectbox('選擇難度', ['全部', '0級', '1級', '2級', '3級', '4級', '5級'], key='sidebar_difficulty')
+        st.session_state.difficulty = difficulty
 
         # 所需時間
         time_options = ['全部', '半天內', '一天內', '多日行程']
-        time_choice = st.selectbox('行程時間', time_options)
+        time_choice = st.selectbox('行程時間', time_options, key='sidebar_time')
+        st.session_state.time_choice = time_choice
 
 # 主要內容區
 col1, col2 = st.columns([2, 1])
@@ -210,37 +213,25 @@ if st.session_state.show_difficulty_levels:
         4. 高難度路線建議結伴同行，切勿單獨登山
         5. 請遵守各國家公園的入山申請規定
         ''')
-    st.markdown('---')
-    st.markdown('#### 用路徑篩選 找出適合自己的健康路線吧！')
 
 else:
-    # 地區選擇
-    region = st.selectbox('選擇地區', ['全部'] + list(hiking_spots.keys()))
-
-    # 難度選擇
-    difficulty = st.selectbox('選擇難度', ['全部', '0級', '1級', '2級', '3級', '4級', '5級'])
-
-    # 所需時間
-    time_options = ['全部', '半天內', '一天內', '多日行程']
-    time_choice = st.selectbox('行程時間', time_options)
-
     with col1:
         st.header('推薦路線')
 
         # 篩選邏輯
         filtered_spots = []
-        regions_to_search = [region] if region != '全部' else hiking_spots.keys()
+        regions_to_search = [st.session_state.region] if st.session_state.region != '全部' else hiking_spots.keys()
 
         for r in regions_to_search:
             for spot in hiking_spots[r]:
-                if difficulty != '全部' and spot['difficulty'] != difficulty:
+                if st.session_state.difficulty != '全部' and spot['difficulty'] != st.session_state.difficulty:
                     continue
-                if time_choice != '全部':
-                    if time_choice == '半天內' and '天' in spot['time']:
+                if st.session_state.time_choice != '全部':
+                    if st.session_state.time_choice == '半天內' and '天' in spot['time']:
                         continue
-                    if time_choice == '一天內' and ('天' in spot['time'] and int(spot['time'][0]) > 1):
+                    if st.session_state.time_choice == '一天內' and ('天' in spot['time'] and int(spot['time'][0]) > 1):
                         continue
-                    if time_choice == '多日行程' and '天' not in spot['time']:
+                    if st.session_state.time_choice == '多日行程' and '天' not in spot['time']:
                         continue
                 filtered_spots.append({'region': r, **spot})
 
@@ -313,4 +304,4 @@ else:
             st.markdown(f'- {tip}')
 
     st.markdown('---')
-    st.markdown('### 山 一直都在！')
+    st.markdown('### 🏔️山 一直都在🏔️')
